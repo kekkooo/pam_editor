@@ -27,6 +27,8 @@ HEADERS  += mainwindow.h \
     R3/coord.h \
     R3/point.h \
     R3/vec3d.h \
-    mesh/mesh_base.h
+    mesh/mesh_base.h \
+    color.h \
+    mesh/mesh.h
 
 FORMS    += mainwindow.ui

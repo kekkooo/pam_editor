@@ -6,6 +6,8 @@
 #include <R3/coord.h>
 #include <R3/point.h>
 #include <R3/vec3d.h>
+#include <mesh/mesh_base.h>
+#include <mesh/mesh.h>
 
 
 int main(int argc, char *argv[])
