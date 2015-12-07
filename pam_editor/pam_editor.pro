@@ -8,8 +8,10 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-QMAKE_CXXFLAGS += -stdlib=libc++ -std=c++11
+QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -stdlib=libc++
 QMAKE_CXXFLAGS += -mmacosx-version-min=10.9
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 
 TARGET = pam_editor
 TEMPLATE = app

@@ -66,24 +66,26 @@ public:
 
 class Walker{
 protected :
-//          bool  already_done;
-//    const Mesh& mesh;
+          bool  already_done;
+    const Mesh& mesh;
 
     virtual void setIfDone() = 0;
 
 public :
-//    Walker( const Mesh& m ) : mesh(m) {  }
+    Walker( const Mesh& m ) : mesh(m) {  }
     virtual ~Walker(){};
     virtual Walker& next() const = 0;
-//    virtual Walker& prev() const = 0;
+    virtual Walker& prev() const = 0;
     virtual bool   done()  const = 0;
 };
+
+/*********************************/
+/*   HalfEdgeWalker declaration  */
+/*********************************/
 
 class HalfEdgeWalker : public Walker{
 
 protected :
-          bool  already_done;
-    const Mesh& mesh;
 
     HalfEdgeID starter;
     HalfEdgeID current;
@@ -92,7 +94,7 @@ protected :
 
 public :
 
-    HalfEdgeWalker( const Mesh& m, const HalfEdgeID& halfedge ) : mesh(m), Walker(){
+    HalfEdgeWalker( const Mesh& m, const HalfEdgeID& halfedge ) : Walker(m){
         assert( mesh.Exists( halfedge) );
         this->starter = halfedge;
         this->current = this->starter;
@@ -100,11 +102,13 @@ public :
     ~HalfEdgeWalker(){ Walker::~Walker(); }
 
     Walker& next() const;
-//    virtual Walker& prev() const;
+    Walker& prev() const;
     bool   done()  const;
 };
 
+/*********************************/
 /* HalfEdgeWalker implementation */
+/*********************************/
 
 
 Walker& HalfEdgeWalker::next() const {
@@ -115,16 +119,18 @@ Walker& HalfEdgeWalker::next() const {
     return *w;
 }
 
-//Walker& HalfEdgeWalker::prev() const {
-//    auto _prev = mesh.HalfEdgeAt( current ).prev;
-//    HalfEdgeWalker* w = new HalfEdgeWalker( mesh, _prev );
-//    w->starter = this->starter;
-//    w->setIfDone();
-//    return *w;
-//}
+Walker& HalfEdgeWalker::prev() const {
+    auto _prev = mesh.HalfEdgeAt( current ).prev;
+    HalfEdgeWalker* w = new HalfEdgeWalker( mesh, _prev );
+    w->starter = this->starter;
+    w->setIfDone();
+    return *w;
+}
 
 void HalfEdgeWalker::setIfDone(){ already_done = already_done || this->current == this->starter; }
 bool HalfEdgeWalker::done() const { return already_done; }
+
+
 
 }
 

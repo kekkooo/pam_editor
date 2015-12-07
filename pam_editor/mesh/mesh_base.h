@@ -15,6 +15,10 @@ enum class Polygon : char{
     Triangle = 'T', Quad = 'Q', Penta = 'P', Hexa = 'H',
 };
 
+enum class MeshType: char{
+    TriangleMesh = 'T', QuadMesh = 'Q', QuadDominantMesh = 'D',
+};
+
 struct Vertex{
     R3::Point pos;
 public :
