@@ -22,13 +22,19 @@ struct VertexID{
     VertexID& operator++()              { this->id++; return *this; }
     VertexID& operator--()              { this->id--; return *this; }
     bool isValid() const                { return this->id != ULLONG_MAX; }
+    friend std::ostream& operator<<( std::ostream& os, const VertexID& in);
 };
+
+inline std::ostream& operator<<( std::ostream& os, const VertexID& in ){
+    return os << in.id;
+}
+
 
 struct HalfEdgeID{
     size_t id;
     HalfEdgeID( )           { id = ULONG_MAX; }
     HalfEdgeID( size_t h )  { id = h; }
-    bool operator == (HalfEdgeID r)         { return this->id == r.id; }
+//    bool operator == (HalfEdgeID r)         { return this->id == r.id; }
     bool operator < (HalfEdgeID r)          { return this->id < r.id; }
     bool operator > (HalfEdgeID r)          { return this->id > r.id; }
     HalfEdgeID& operator << (size_t r)      { this->id = r; return *this; }
@@ -36,7 +42,13 @@ struct HalfEdgeID{
     HalfEdgeID& operator ++ ()              { this->id++; return *this; }
     HalfEdgeID& operator -- ()              { this->id--; return *this; }
     bool isValid() const                    { return this->id != ULLONG_MAX; }
+    friend std::ostream& operator<<( std::ostream& os, const HalfEdgeID& in);
 };
+
+inline std::ostream& operator<<( std::ostream& os, const HalfEdgeID& in ){
+    return os << in.id;
+}
+
 struct FaceID{
     size_t id;
     FaceID( )           { id = ULONG_MAX; }
@@ -49,8 +61,14 @@ struct FaceID{
     FaceID& operator    ++ ()           { this->id++; return *this; }
     FaceID& operator    -- ()           { this->id--; return *this; }
     bool isValid() const                { return this->id != ULLONG_MAX; }
+    friend std::ostream& operator<<( std::ostream& os, const FaceID& in);
 };
 
+inline std::ostream& operator<<( std::ostream& os, const FaceID& in ){
+    return os << in.id;
+}
+
+inline bool operator == ( const HalfEdgeID l, const HalfEdgeID r)    { return l.id == r.id; }
 inline bool operator < ( const VertexID l, const VertexID r)        { return l.id < r.id; }
 inline bool operator < ( const HalfEdgeID l, const HalfEdgeID r)    { return l.id < r.id; }
 inline bool operator < ( const FaceID l, const FaceID r)            { return l.id < r.id; }

@@ -11,6 +11,9 @@
 #include <mesh/mesh_base.h>
 #include <mesh/mesh.h>
 
+
+
+
 int main(int argc, char *argv[])
 {
     R3::Coord c(1,1,1), c2(1,1,1);
@@ -38,6 +41,23 @@ int main(int argc, char *argv[])
 
     Mesh::Mesh mesh;
     mesh.BuildFromVectors( verts, faces );
+    Mesh::FaceID fid( 0 );
+    Mesh::FaceWalker fw = mesh.getWalker( fid );
+    Mesh::HalfEdgeWalker hew = mesh.getWalker( fw.GetFace().edge );
+    Mesh::VertexWalker vw = mesh.getWalker( hew.GetHalfEdge().from );
+
+    std::cout << "FACES!" << std::endl;
+    size_t iters = 0;
+    while( !fw.done( )){
+
+        std::cout << iters++ << ") " << fw.GetFaceID() << " : done? " << fw.done()  << std::endl;
+        Mesh::FaceWalker n = fw.Next();
+        fw = n;
+        std::cout << "fw done ? " << fw.done() << "   #    n done? " << n.done() << std::endl;
+        //fw = fw.Next();
+
+
+    }
 
 
 //    std::cout << cr << std::endl;

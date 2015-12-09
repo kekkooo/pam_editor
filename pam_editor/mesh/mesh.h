@@ -7,6 +7,7 @@
 #include <map>
 #include <Eigen/Dense>
 #include "gsl/gsl-lite.h"
+#include <iostream>
 
 namespace Mesh{
 
@@ -39,6 +40,11 @@ typedef ItemVector< Face,       FaceID>     FaceVector;
 typedef ItemVector< R3::Vec3d,  VertexID>   VertexNormalsVector;
 typedef ItemVector< R3::Vec3d,  FaceID>     FaceNormalsVector;
 
+class Walker;
+class HalfEdgeWalker;
+class FaceWalker;
+class VertexWalker;
+
 class Mesh{
 private :
     VertexVector        vs;
@@ -47,7 +53,7 @@ private :
     VertexNormalsVector vns;
     FaceNormalsVector   fns;
 
-public:
+public:    
 
     Mesh(){
         vs = VertexVector();
@@ -66,82 +72,7 @@ public:
         fns.Items().clear();
     }
 
-    void BuildFromVectors( Eigen::MatrixXd vertices,  Eigen::MatrixXi faces );//{
-//        // data structures fro twin connectiity
-//        typedef std::pair<VertexID, VertexID> VPair;
-//        typedef std::map<VPair, HalfEdgeID>   VertexToHalfedge;
-
-//        VertexToHalfedge vpair_to_he;
-
-//        //TODO : create twin connectivity, maybe this can go on a cpp file.
-//        this->Clear();
-//        // Actually it should be more performant to iterate column-wise, instead of row-wise
-//        // STEP 1 - copy vertices
-//        for( size_t r = 0; r< vertices.rows(); ++r ){
-//            Vertex vert;
-//            vert.pos.Set( vertices(r, 0), vertices(r, 1),  vertices(r, 2));
-//            vs.Items().push_back( vert );
-//        }
-//        // STEP 2 - a) create faces;  b) create halfedges; c) create next, prev connectivity
-//        for( size_t r = 0; r< faces.rows(); ++r ){
-//            // a) create faces
-//            Face face;
-//            FaceID fid;
-//            bool last = false;
-//            for( size_t c = 0; c < faces.cols() && !last; ++c ){
-//                if( faces( r, c ) == SIGNED_INVALID_ID ){
-//                    last = true;
-//                    continue;
-//                }
-//                face.verts.push_back( VertexID(faces( r,c )));
-//            }
-//            fid.id = fs.size();
-//            fs.Items().push_back( face );
-//            // b) create halfedges
-//            HalfEdgeID anchor( hs.size( ));
-//            for( size_t i = i; i < face.verts.size(); ++i ){
-//                HalfEdge h;
-//                h.face = fid;
-//                h.from = VertexID( face.verts[i-1] );
-//                h.to   = VertexID( face.verts[i] );
-//                HalfEdgeID hid( hs.Items().size());
-//                hs.Items().push_back( h );
-//                vs.at( h.from ).out = hid;
-//                vs.at( h.to).in     = hid;
-//                vpair_to_he[ std::make_pair(h.from, h.to)] = hid;
-//            }
-//            HalfEdge last_h;
-//            last_h.face = fid;
-//            last_h.from = VertexID( face.verts.back() );
-//            last_h.to   = VertexID( face.verts.front() );
-//            HalfEdgeID hid( hs.Items().size());
-//            hs.Items().push_back( last_h );
-//            vs.at( last_h.from ).out = hid;
-//            vs.at( last_h.to).in     = hid;
-//            vpair_to_he[ std::make_pair(last_h.from, last_h.to)] = hid;
-//            // c) create next, prev connectivity
-//            HalfEdgeID curr = anchor, prev = anchor;
-//            ++curr;
-//            for( int i= 1; i < face.verts.size(); ++i ){
-//                hs.at( prev ).next = curr;
-//                hs.at( curr ).prev= prev;
-//                ++prev;
-//                ++curr;
-//            }
-//            hs.at( prev ).next = anchor;
-//            hs.at( anchor ).prev= prev;
-//        }
-//        for( const auto& item : vpair_to_he ){// item is a pair< Vpair, HalfEdgeID>
-//            assert( item.second.isValid() );
-//            // if the twin has been set, this item can be skipped.
-//            if(  !hs.at(item.second).twin.isValid( )) { continue; }
-//            VPair twin_pair = std::make_pair( item.first.second, item.first.first );
-//            assert(vpair_to_he.count( twin_pair ) > 0 );
-//            HalfEdgeID twin_id = vpair_to_he.at( twin_pair );
-//            hs.at( item.second).twin = twin_id;
-//            hs.at( twin_id ).twin = item.second;
-//        }
-    //}
+    void BuildFromVectors( Eigen::MatrixXd vertices,  Eigen::MatrixXi faces );
 
 
     /*********************************/
@@ -176,6 +107,10 @@ public:
     /*********************************/
     /*              Walkers          */
     /*********************************/
+    HalfEdgeWalker  getWalker( const HalfEdgeID& halfedge);
+    VertexWalker    getWalker( const VertexID& vertex );
+    FaceWalker      getWalker( const FaceID& face );
+
 
 };
 
@@ -187,92 +122,19 @@ class Walker{
 
 protected :
 
-    size_t counter = 0;
-    bool  already_done = false;
+    size_t counter      = 0;
+    bool  already_done;//  = false;
     const Mesh& mesh;
+    const Mesh* mesh_pointer;
+    std::shared_ptr<const Mesh> const_mesh;
     HalfEdgeID starter;
     HalfEdgeID current;
 
-    void setIfDone(){ already_done = counter > 0 && this->current == this->starter; }
-
-    /* MOVE ALONG EDGES */
-    Walker& nextHE() const {
-        auto _next = mesh.HalfEdgeAt( current ).next;
-        Walker* w = new Walker( mesh, _next );
-        w->starter = this->starter;
-        w->setIfDone();
-        w->counter++;
-        return *w;
-    }
-
-    Walker& oppHE() const {
-        auto _opp = mesh.HalfEdgeAt( current ).twin;
-        Walker* w = new Walker( mesh, _opp );
-        w->starter = this->starter;
-        w->setIfDone();
-        w->counter++;
-        return *w;
-    }
-
-    Walker& prevHE() const {
-        auto _prev = mesh.HalfEdgeAt( current ).prev;
-        Walker* w = new Walker( mesh, _prev );
-        w->starter = this->starter;
-        w->setIfDone();
-        w->counter++;
-        return *w;
-    }
-
-    /* MOVE ALONG FACE 1-RING CCW */
-    Walker& nextFace() const {
-        // next->opp->face
-        auto _next =
-                mesh.HalfEdgeAt(
-                mesh.HalfEdgeAt(current).next ).twin;
-
-        Walker* w = new Walker( mesh, _next );
-        w->starter = this->starter;
-        w->setIfDone();
-        w->counter++;
-        return *w;
-    }
-
-    Walker& prevFace() const {
-        auto _prev =
-                mesh.HalfEdgeAt(
-                mesh.HalfEdgeAt(current).prev ).twin;
-
-        Walker* w = new Walker( mesh, _prev );
-        w->starter = this->starter;
-        w->setIfDone();
-        w->counter++;
-        return *w;
-    }
-
-    /* MOVE ALONG VERTEX 1-RING CCW */
-    Walker& nextVertex() const {
-        // next->opp->face
-        auto _next =
-                mesh.HalfEdgeAt(
-                mesh.HalfEdgeAt(current).prev).twin;
-
-        Walker* w = new Walker( mesh, _next );
-        w->starter = this->starter;
-        w->setIfDone();
-        w->counter++;
-        return *w;
-    }
-
-    Walker& prevVertex() const {
-        auto _prev =
-                mesh.HalfEdgeAt(
-                mesh.HalfEdgeAt(current).twin ).next;
-
-        Walker* w = new Walker( mesh, _prev );
-        w->starter = this->starter;
-        w->setIfDone();
-        w->counter++;
-        return *w;
+    void setIfDone(){
+        bool comparison = this->current == this->starter;
+        bool countercomp = this->counter > 0;
+        this->already_done = ( this->counter > 0 ) && ( comparison);
+        std::cout << "internal : has done?" << this->already_done << std::endl;
     }
 
     HalfEdgeID _getHalfEdgeID()     const { return current; }
@@ -301,8 +163,13 @@ public :
 
     inline Walker operator =(const Walker& w)
     {
+//        mesh = w.mesh ;
+        const_mesh = w.const_mesh;
+        mesh_pointer = w.mesh_pointer;
+        starter = w.starter;
         current = w.current;
         counter = w.counter;
+        already_done = w.already_done;
         return *this;
     }
 
@@ -312,31 +179,113 @@ public :
 
 
 class HalfEdgeWalker : public Walker{
-
 public :
-    Walker& Next() const { return this->nextHE();}
-    Walker& Prev() const { return this->prevHE();}
-    Walker& Opp()  const { return this->oppHE();}
-    HalfEdgeID GetHalfEdgeID()     const { return this->_getHalfEdgeID(); }
-    const HalfEdge& GetHalfEdge()  const { return this->_getHalfEdge(); }
+    /* MOVE ALONG EDGES */
+    HalfEdgeWalker Next() const {
+        auto _next = mesh.HalfEdgeAt( current ).next;
+        HalfEdgeWalker w( mesh, _next );
+        w.starter = this->starter;
+        w.counter++;
+        w.setIfDone();
+        return w;
+    }
+
+    HalfEdgeWalker Opp() const {
+        auto _opp = mesh.HalfEdgeAt( current ).twin;
+        HalfEdgeWalker w( mesh, _opp );
+        w.starter = this->starter;
+        w.counter++;
+        w.setIfDone();
+        return w;
+    }
+
+    HalfEdgeWalker Prev() const {
+        auto _prev = mesh.HalfEdgeAt( current ).prev;
+        HalfEdgeWalker w( mesh, _prev );
+        w.starter = this->starter;
+        w.counter++;
+        w.setIfDone();
+        return w;
+    }
+
+    HalfEdgeWalker(const Mesh& m, const HalfEdgeID& halfedge ) : Walker( m, halfedge ){ }
+    HalfEdgeID GetHalfEdgeID()          const { return _getHalfEdgeID();    }
+    HalfEdgeID GetOppHalfEdgeID()       const { return _getOppHalfEdgeID();  }
+    const HalfEdge& GetHalfEdge()       const { return _getHalfEdge();      }
+    const HalfEdge& GetOppHalfEdge()    const { return  _getOppHalfEdge();  }
 };
 
 class FaceWalker : public Walker{
-
+protected :
+    FaceWalker(const Mesh& m, const HalfEdgeID& halfedge ) : Walker( m, halfedge){ }
 public :
-    Walker& Next() const { return this->nextFace(); }
-    Walker& Prev() const { return this->prevFace(); }
-    FaceID GetFaceID()     const { return this->_getFaceID(); }
-    const Face& GetFace()  const { return this->_getFace(); }
+    FaceWalker(const Mesh& m, const FaceID& face ) : Walker( m, m.FaceAt(face).edge){ }
+    FaceID GetFaceID()          const { return this->_getFaceID(); }
+    FaceID GetOppFaceID()       const { return this->_getOppFaceID(); }
+    const Face& GetFace()       const { return this->_getFace(); }
+    const Face& GetOppFace()    const { return this->_getOppFace(); }
+
+    /* MOVE ALONG FACE 1-RING CCW */
+    FaceWalker Next() const {
+        // next->opp->face
+        auto _next =
+                mesh.HalfEdgeAt(
+                mesh.HalfEdgeAt(current).next ).twin;
+
+        FaceWalker w( mesh, _next );
+        w.starter = this->starter;
+        w.counter++;
+        w.setIfDone();
+        std::cout << "internal : has done?" << w.done() << std::endl;
+        return w;
+    }
+
+    FaceWalker Prev() const {
+        auto _prev =
+                mesh.HalfEdgeAt(
+                mesh.HalfEdgeAt(current).prev ).twin;
+
+        FaceWalker w( mesh, _prev );
+        w.starter = this->starter;
+        w.counter++;
+        w.setIfDone();
+        return w;
+    }
 };
 
 class VertexWalker : public Walker{
-
+protected:
+    VertexWalker(const Mesh& m, const HalfEdgeID& halfedge) : Walker( m, halfedge ){ }
 public :
-    Walker& Next() const { return this->nextVertex(); }
-    Walker& Prev() const { return this->prevVertex(); }
-    FaceID GetFaceID()     const { return this->_getFaceID(); }
-    const Face& GetFace()  const { return this->_getFace(); }
+    VertexWalker(const Mesh& m, const VertexID& vertex) : Walker( m, m.VertexAt(vertex).out ){ }
+    VertexID GetVertexID()     const { return this->_getToVertexID(); }
+    const Vertex& GetVertex()  const { return this->_getToVertex(); }
+
+    /* MOVE ALONG VERTEX 1-RING CCW */
+    VertexWalker Next() const {
+        // next->opp->face
+        auto _next =
+                mesh.HalfEdgeAt(
+                mesh.HalfEdgeAt(current).prev).twin;
+
+        VertexWalker w( mesh, _next );
+        w.starter = this->starter;
+        w.counter++;
+        w.setIfDone();
+        return w;
+    }
+
+    VertexWalker Prev() const {
+        auto _prev =
+                mesh.HalfEdgeAt(
+                mesh.HalfEdgeAt(current).twin ).next;
+
+        VertexWalker w( mesh, _prev );
+        w.starter = this->starter;
+        w.counter++;
+        w.setIfDone();
+        return w;
+    }
 };
 
 
