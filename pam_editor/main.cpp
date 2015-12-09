@@ -3,12 +3,13 @@
 
 #include <iostream>
 
+#include <Eigen/Dense>
+
 #include <R3/coord.h>
 #include <R3/point.h>
 #include <R3/vec3d.h>
 #include <mesh/mesh_base.h>
 #include <mesh/mesh.h>
-
 
 int main(int argc, char *argv[])
 {
@@ -20,9 +21,29 @@ int main(int argc, char *argv[])
     R3::Point pr = p + p2;
     R3::Vec3d vr = v + v2;
 
+    Eigen::MatrixXd verts(4, 3);
+    Eigen::MatrixXi faces(4, 3);
+
+    verts << 0, 0,  0,
+             1, 0,  0,
+             0, 0,  1,
+             0.5, 1, 0.5;
+
+    faces <<
+         1, 0, 2,
+         1, 3, 0,
+         1, 2, 3,
+         2, 0, 3;
+
+
+    Mesh::Mesh mesh;
+    mesh.BuildFromVectors( verts, faces );
+
+
 //    std::cout << cr << std::endl;
 //    std::cout << vr << std::endl;
 //    std::cout << pr << std::endl;
+
 
     QApplication a(argc, argv);
     MainWindow w;

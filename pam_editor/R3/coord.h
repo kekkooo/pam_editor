@@ -80,7 +80,7 @@ public:
                                           return *this;
                                         }
 
-    //friend std::ostream& operator<<( std::ostream& os, const Coord& in);
+    friend std::ostream& operator<<( std::ostream& os, const Coord& in);
 
 };
 
@@ -90,10 +90,9 @@ public:
 //}
 
 // IMPLEMENTATION
-//std::ostream& Coord::operator<<( std::ostream& os, const Coord& in ){
-//    return os;// << "[" << in.GetX() << ", " << in.GetY() << "," << in.GetZ() << "]";
-
-//}
+inline std::ostream& operator<<( std::ostream& os, const Coord& in ){
+    return os << "[" << in.GetX() << ", " << in.GetY() << "," << in.GetZ() << "]";
+}
 
 }
 

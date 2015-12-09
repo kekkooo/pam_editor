@@ -21,7 +21,8 @@ INCLUDEPATH += /Users/francescousai/Documents/Libs/gsl-lite/include/
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    mesh/mesh.cpp
 
 HEADERS  += mainwindow.h \
     basics/point.h \

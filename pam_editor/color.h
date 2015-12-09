@@ -94,5 +94,6 @@ public :
         inline double const * asArray() const { return _v; }
 
 };
+}
 
 #endif // COLOR_H
