@@ -18,6 +18,9 @@ TEMPLATE = app
 
 INCLUDEPATH += /Users/francescousai/Documents/Libs/eigen/
 INCLUDEPATH += /Users/francescousai/Documents/Libs/gsl-lite/include/
+INCLUDEPATH += /usr/local/include/
+LIBS    += -L/usr/local/lib/ -lboost_system
+
 
 
 SOURCES += main.cpp\
@@ -32,6 +35,7 @@ HEADERS  += mainwindow.h \
     R3/vec3d.h \
     mesh/mesh_base.h \
     color.h \
-    mesh/mesh.h
+    mesh/mesh.h \
+    mesh/import.h
 
 FORMS    += mainwindow.ui

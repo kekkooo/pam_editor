@@ -1,7 +1,8 @@
 #include <mesh/mesh.h>
 
 namespace  Mesh {
-    void Mesh::Mesh::BuildFromVectors( Eigen::MatrixXd vertices, Eigen::MatrixXi faces ){
+    //void Mesh::Mesh::BuildFromVectors( Eigen::MatrixXd vertices, Eigen::MatrixXi faces ){
+    void Mesh::BuildFromVectors( std::vector< double >& verts,  std::vector< std::vector< u_long > >& faces ){
         // data structures fro twin connectiity
         typedef std::pair<VertexID, VertexID> VPair;
         typedef std::map<VPair, HalfEdgeID>   VertexToHalfedge;
@@ -12,25 +13,21 @@ namespace  Mesh {
         this->Clear();
         // Actually it should be more performant to iterate column-wise, instead of row-wise
         // STEP 1 - copy vertices
-        for( size_t r = 0; r< vertices.rows(); ++r ){
+
+        for( size_t i = 0; i < verts.size(); i+=3 ){
             Vertex vert;
-            vert.pos.Set( vertices(r, 0), vertices(r, 1),  vertices(r, 2));
-            vs.Items().push_back( vert );
+            vert.pos.Set( verts.at(i), verts.at(i+1), verts.at(i+2));
+            vs.push_back( vert );
         }
         // STEP 2 - a) create faces;  b) create halfedges; c) create next, prev connectivity
-        for( size_t r = 0; r< faces.rows(); ++r ){
+        for( const auto& item: faces ){
             // a) create faces
             Face face;
-            bool last = false;
-            for( size_t c = 0; c < faces.cols() && !last; ++c ){
-                if( faces( r, c ) == SIGNED_INVALID_ID ){
-                    last = true;
-                    continue;
-                }
-                face.verts.push_back( VertexID(faces( r,c )));
+            for( const auto& vert_id: item){
+                face.verts.push_back( VertexID( vert_id ));
             }
             FaceID fid( fs.size() );
-            fs.Items().push_back( face );
+            fs.push_back( face );
             // b) create halfedges
             HalfEdgeID anchor( hs.size( ));
             for( size_t i = 1; i < face.verts.size(); ++i ){
@@ -38,8 +35,8 @@ namespace  Mesh {
                 h.face = fid;
                 h.from = VertexID( face.verts[i-1] );
                 h.to   = VertexID( face.verts[i] );
-                HalfEdgeID hid( hs.Items().size());
-                hs.Items().push_back( h );
+                HalfEdgeID hid( hs.size());
+                hs.push_back( h );
                 vs.at( h.from ).out = hid;
                 vs.at( h.to).in     = hid;
                 vpair_to_he[ std::make_pair(h.from, h.to)] = hid;
@@ -48,8 +45,8 @@ namespace  Mesh {
             last_h.face = fid;
             last_h.from = VertexID( face.verts.back() );
             last_h.to   = VertexID( face.verts.front() );
-            HalfEdgeID hid( hs.Items().size());
-            hs.Items().push_back( last_h );
+            HalfEdgeID hid( hs.size());
+            hs.push_back( last_h );
             fs.at( last_h.face ).edge = hid;
             vs.at( last_h.from ).out = hid;
             vs.at( last_h.to).in     = hid;
@@ -67,9 +64,9 @@ namespace  Mesh {
             hs.at( anchor ).prev= prev;
         }
         for( const auto& item : vpair_to_he ){// item is a pair< Vpair, HalfEdgeID>
-            assert( item.second.isValid() );
+            assert( isValid(item.second) );
             // if the twin has been set, this item can be skipped.
-            if(  hs.at(item.second).twin.isValid( )) { continue; }
+            if(  isValid(hs.at(item.second).twin) ) { continue; }
             VPair twin_pair = std::make_pair( item.first.second, item.first.first );
             assert(vpair_to_he.count( twin_pair ) > 0 );
             HalfEdgeID twin_id = vpair_to_he.at( twin_pair );
@@ -77,13 +74,13 @@ namespace  Mesh {
             hs.at( twin_id ).twin = item.second;
         }
     }
-    HalfEdgeWalker  Mesh::getWalker( const HalfEdgeID& halfedge ){
+    HalfEdgeWalker  Mesh::getWalker( const HalfEdgeID& halfedge ) const {
         return HalfEdgeWalker( *this, halfedge );
     }
-    VertexWalker  Mesh::getWalker( const VertexID& vertex ){
+    VertexWalker  Mesh::getWalker( const VertexID& vertex ) const {
         return VertexWalker( *this, vertex );
     }
-    FaceWalker  Mesh::getWalker( const FaceID& face ){
+    FaceWalker  Mesh::getWalker( const FaceID& face ) const {
         return FaceWalker( *this, face );
     }
 
