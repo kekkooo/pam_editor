@@ -1,5 +1,7 @@
 #include <mesh/mesh.h>
 
+using namespace R3;
+
 namespace  Mesh {
     //void Mesh::Mesh::BuildFromVectors( Eigen::MatrixXd vertices, Eigen::MatrixXi faces ){
     void Mesh::BuildFromVectors( std::vector< double >& verts,  std::vector< std::vector< u_long > >& faces ){
@@ -16,9 +18,11 @@ namespace  Mesh {
 
         for( size_t i = 0; i < verts.size(); i+=3 ){
             Vertex vert;
+
             vert.pos.Set( verts.at(i), verts.at(i+1), verts.at(i+2));
-            vs.push_back( vert );
-        }
+            vs.push_back( vert );                        
+        }        
+
         // STEP 2 - a) create faces;  b) create halfedges; c) create next, prev connectivity
         for( const auto& item: faces ){
             // a) create faces
@@ -73,7 +77,64 @@ namespace  Mesh {
             hs.at( item.second).twin = twin_id;
             hs.at( twin_id ).twin = item.second;
         }
+        updateNormals();
     }
+
+    void Mesh::updateNormals(){
+        //
+        // 1) Compute Per Face Normals
+        //
+        for( Face& face : fs ){
+            switch (face.GetPolygonType()) {
+            case PolygonType::Triangle:
+            {
+                Vec3d u,v;
+                Point a = this->VertexAt(face.verts[1]).Pos();
+                Point b = this->VertexAt(face.verts[2]).Pos();
+                Point c = this->VertexAt(face.verts[0]).Pos();
+                u = this->VertexAt(face.verts[1]).Pos() - this->VertexAt(face.verts[0]).Pos();
+                v = this->VertexAt(face.verts[2]).Pos() - this->VertexAt(face.verts[0]).Pos();
+                face.Normal() = (u.Cross( v ).Normalized());
+            }
+            break;
+
+            case PolygonType::Quad:
+            {
+                Vec3d u,v, n1, n2;
+                u = this->VertexAt(face.verts[1]).Pos() - this->VertexAt(face.verts[0]).Pos();
+                v = this->VertexAt(face.verts[2]).Pos() - this->VertexAt(face.verts[0]).Pos();
+                n1 = u.Cross( v ); n1.Normalize();
+
+                u = this->VertexAt(face.verts[2]).Pos() - this->VertexAt(face.verts[0]).Pos();
+                v = this->VertexAt(face.verts[3]).Pos() - this->VertexAt(face.verts[0]).Pos();
+                n2 = u.Cross( v ); n2.Normalize();
+
+                face.Normal() = Vec3d(((n1 + n2) * 0.5)).Normalized();
+            }
+                break;
+
+            default:
+                break;
+            }
+        }
+
+        for( size_t i = 0; i < vs.size(); ++i ){
+            VertexWalker w = getWalker( VertexID(i) );
+            Vec3d n;
+            while( !w.done( )){
+                n = n + FaceAt( w.GetHalfEdge().face ).Normal();
+                w = w.Next();
+            }
+            n = Vec3d( n/(double)w.Steps());
+            VertexAt( VertexID(i) ).Normal()=n;
+        }
+
+    }
+
+
+
+
+
     HalfEdgeWalker  Mesh::getWalker( const HalfEdgeID& halfedge ) const {
         return HalfEdgeWalker( *this, halfedge );
     }

@@ -25,7 +25,7 @@ inline bool isValid( VertexID id)   { return id != InvalidVertexID; }
 inline bool isValid( HalfEdgeID id) { return id != InvalidHalfEdgeID; }
 inline bool isValid( FaceID id)     { return id != InvalidFaceID; }
 
-enum class Polygon : char{
+enum class PolygonType : char{
     Triangle = 'T', Quad = 'Q', Penta = 'P', Hexa = 'H',
 };
 
@@ -35,10 +35,14 @@ enum class MeshType: char{
 
 struct Vertex{
     R3::Point pos;
+    R3::Vec3d normal;
 public :
     HalfEdgeID in = InvalidHalfEdgeID, out = InvalidHalfEdgeID;
     const R3::Point Pos() const { return pos; }
     R3::Point Pos()             { return pos; }
+    const R3::Vec3d Normal() const { return normal; }
+    R3::Vec3d Normal()             { return normal; }
+
 };
 
 class HalfEdge{
@@ -49,9 +53,20 @@ public :
 };
 
 struct Face{
+private :
+    R3::Vec3d normal;
 public :
     std::vector<VertexID> verts;
     HalfEdgeID  edge = InvalidHalfEdgeID;
+    PolygonType GetPolygonType() const {
+        if(verts.size() == 3 ) return PolygonType::Triangle;
+        if(verts.size() == 4 ) return PolygonType::Quad;
+        if(verts.size() == 5 ) return PolygonType::Penta;
+        if(verts.size() == 6 ) return PolygonType::Hexa;
+        assert(false);
+    }
+    const R3::Vec3d Normal() const { return normal; }
+    R3::Vec3d Normal()             { return normal; }
 };
 
 }

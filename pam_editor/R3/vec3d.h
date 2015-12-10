@@ -15,7 +15,7 @@ class Vec3d : public Coord{
 
 public :
     Vec3d( double x=0.0, double y=0.0, double z=0.0) : Coord( x, y, z ) {}
-    Vec3d( const Coord& coordinates ) { Set( coordinates.GetX(), coordinates.GetY(), coordinates.GetZ() ); }
+    Vec3d( const Coord& coordinates ) { Set( coordinates.GetX(), coordinates.GetY(), coordinates.GetZ() ); }    
 
     double    LengthSquared()       const   { return this->coord.squaredNorm();     }
     double    Length()              const   { return sqrt( this->LengthSquared());  }
@@ -34,7 +34,7 @@ public :
     bool ParallelAndOpposite( const Vec3d in ) const
                                           { double dot = this->Dot( in );
                                             return (fabs( 1.0 - fabs(dot) ) < R3_EPS)&&(( 1.0 + dot ) < R3_EPS );
-                                          }
+                                          }    
 
 /* STATIC */
     static double Angle ( const Vec3d &left, const Vec3d &right )

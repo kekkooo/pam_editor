@@ -43,24 +43,24 @@ int main(int argc, char *argv[])
 
     Mesh::Mesh mesh;
     //mesh.BuildFromVectors( verts, faces );
-    Mesh::Importer::from_obj("/Users/francescousai/Documents/Sviluppo/igl_viewer/data/warrior.obj", verts, faces);
+    //Mesh::Importer::from_obj("/Users/francescousai/Documents/Sviluppo/igl_viewer/data/warrior.obj", verts, faces);
+    Mesh::Importer::from_off("/Users/francescousai/Documents/Sviluppo/igl_viewer/data/bunny.off", verts, faces);
 
     std::cout << verts.size() << ", " << faces.size() << std::endl;
 
-//    std::cout << "VERTICES" <<std::endl;
-//    for( int i = 0; i < verts.size(); i+=3 ){
-//        std::cout<< verts[i] << ", " << verts[i+1] << ", " << verts[i+2] << std::endl;
-//    }
-//    std::cout << "FACES" <<std::endl;
-//    for(const auto& face : faces){
-//        for(u_long fv : face){
-//            std::cout<< fv << ", ";
-//        }
-//        std::cout << std::endl;
-//    }
+    std::cout << "VERTICES" <<std::endl;
+    for( int i = 0; i < verts.size(); i+=3 ){
+        std::cout<< verts[i] << ", " << verts[i+1] << ", " << verts[i+2] << std::endl;
+    }
+    std::cout << "FACES" <<std::endl;
+    for(const auto& face : faces){
+        for(u_long fv : face){
+            std::cout<< fv << ", ";
+        }
+        std::cout << std::endl;
+    }
 
     mesh.BuildFromVectors(verts, faces);
-
 
     Mesh::FaceID fid( 0 );
     Mesh::FaceWalker fw = mesh.getWalker( fid );
@@ -68,24 +68,24 @@ int main(int argc, char *argv[])
     Mesh::HalfEdgeWalker hew = mesh.getWalker( hid );
     Mesh::VertexWalker vw = mesh.getWalker( hew.GetHalfEdge().from );
 
-    std::cout << "FACES! start at " << fw.GetFaceID() << std::endl;
-    while( !fw.done( )){
+//    std::cout << "FACES! start at " << fw.GetFaceID() << std::endl;
+//    while( !fw.done( )){
 
-        fw = fw.Next();
-        std::cout <<  fw.GetFaceID() << " : done? " << fw.done()  << std::endl;
-    }
+//        fw = fw.Next();
+//        std::cout <<  fw.GetFaceID() << " : done? " << fw.done()  << std::endl;
+//    }
 
-    std::cout << "EDGES! start at " << hew.GetHalfEdgeID() << std::endl;
-    while( !hew.done( )){
-        std::cout << hew.GetHalfEdgeID() << " : done? " << hew.done()  << std::endl;
-        hew = hew.Next();
-    }
+//    std::cout << "EDGES! start at " << hew.GetHalfEdgeID() << std::endl;
+//    while( !hew.done( )){
+//        std::cout << hew.GetHalfEdgeID() << " : done? " << hew.done()  << std::endl;
+//        hew = hew.Next();
+//    }
 
-    std::cout << "VERTICES! start at " << vw.GetVertexID() << std::endl;
-    while( !vw.done( )){
-        std::cout << vw.GetVertexID() << " : done? " << vw.done()  << std::endl;
-        vw = vw.Next();
-    }
+//    std::cout << "VERTICES! start at " << vw.GetVertexID() << std::endl;
+//    while( !vw.done( )){
+//        std::cout << vw.GetVertexID() << " : done? " << vw.done()  << std::endl;
+//        vw = vw.Next();
+//    }
 
 
     QApplication a(argc, argv);

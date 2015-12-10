@@ -14,8 +14,6 @@ namespace Mesh{
 typedef std::vector<Vertex>         VertexVector;
 typedef std::vector<HalfEdge>       HalfEdgeVector;
 typedef std::vector<Face>           FaceVector;
-typedef std::vector< R3::Vec3d>     VertexNormalsVector;
-typedef std::vector< R3::Vec3d>     FaceNormalsVector;
 
 class Walker;
 class HalfEdgeWalker;
@@ -27,17 +25,12 @@ private :
     VertexVector        vs;
     HalfEdgeVector      hs;
     FaceVector          fs;
-    VertexNormalsVector vns;
-    FaceNormalsVector   fns;
-
 public:    
 
     Mesh(){
         vs = VertexVector();
         hs = HalfEdgeVector();
-        fs = FaceVector();
-        vns = VertexNormalsVector();
-        fns = FaceNormalsVector();
+        fs = FaceVector();        
     };
     ~Mesh(){ this->Clear(); }
 
@@ -45,8 +38,6 @@ public:
         vs.clear();
         fs.clear();
         hs.clear();
-        vns.clear();
-        fns.clear();
     }
 
 //    void BuildFromVectors( Eigen::MatrixXd vertices,  Eigen::MatrixXi faces );
@@ -72,12 +63,6 @@ public:
     HalfEdge& HalfEdgeAt  ( HalfEdgeID id )   { assert( isValid(id)); return hs.at( id ); }
     Vertex&   VertexAt    ( VertexID id )     { assert( isValid(id)); return vs.at( id ); }
 
-    const R3::Vec3d&   NormalAt    ( FaceID id )    const { assert( isValid(id) ); return fns.at( id ); }
-    const R3::Vec3d&   NormalAt    ( VertexID id )  const { assert( isValid(id) ); return vns.at( id ); }
-
-    R3::Vec3d&   NormalAt    ( FaceID id )    { assert( isValid(id)); return fns.at( id ); }
-    R3::Vec3d&   NormalAt    ( VertexID id )  { assert( isValid(id)); return vns.at( id ); }
-
     bool Exists( const HalfEdgeID& id ) const { return hs.size() > id ; }
     bool Exists( const VertexID&   id ) const { return vs.size() > id ; }
     bool Exists( const FaceID&     id ) const { return fs.size() > id ; }
@@ -92,6 +77,10 @@ public:
     HalfEdgeWalker  getWalker( const HalfEdgeID& halfedge) const;
     VertexWalker    getWalker( const VertexID& vertex ) const;
     FaceWalker      getWalker( const FaceID& face ) const;
+
+    /*              Normals          */
+    void updateNormals();
+
 };
 
 /*********************************/
@@ -138,8 +127,11 @@ public :
     ~Walker(){ }
 
     bool done() const { return already_done; }
+    size_t Steps() const { return counter; }
 };
 
+class VertexWalker;
+class FaceWalker;
 
 class HalfEdgeWalker : public Walker{
 public :
@@ -149,7 +141,7 @@ public :
         auto _next = mesh->HalfEdgeAt( current ).next;
         HalfEdgeWalker w( *mesh, _next );
         w.starter = this->starter;
-        w.counter++;
+        w.counter = counter+1;
         w.setIfDone();
         return w;
     }
@@ -159,7 +151,7 @@ public :
         auto _opp = mesh->HalfEdgeAt( current ).twin;
         HalfEdgeWalker w( *mesh, _opp );
         w.starter = this->starter;
-        w.counter++;
+        w.counter = counter+1;
         w.setIfDone();
         return w;
     }
@@ -169,7 +161,7 @@ public :
         auto _prev = mesh->HalfEdgeAt( current ).prev;
         HalfEdgeWalker w( *mesh, _prev );
         w.starter = this->starter;
-        w.counter++;
+        w.counter = counter+1;
         w.setIfDone();
         return w;
     }
@@ -197,7 +189,7 @@ public :
         auto _next = mesh->HalfEdgeAt(current).next;
         FaceWalker w( *mesh, _next );
         w.starter = this->starter;
-        w.counter++;
+        w.counter = counter+1;
         w.setIfDone();        
         return w;
     }
@@ -207,10 +199,13 @@ public :
         auto _prev = mesh->HalfEdgeAt(current).prev;
         FaceWalker w( *mesh, _prev );
         w.starter = this->starter;
-        w.counter++;
+        w.counter = counter+1;
         w.setIfDone();        
         return w;
     }
+
+    HalfEdgeID      GetHalfEdgeID()          const { return _getHalfEdgeID();    }
+    const HalfEdge& GetHalfEdge()            const { return _getHalfEdge();    }
 };
 
 class VertexWalker : public Walker{
@@ -230,7 +225,7 @@ public :
 
         VertexWalker w( *mesh, _next );
         w.starter = this->starter;
-        w.counter++;
+        w.counter = counter+1;
         w.setIfDone();
         assert(w._getFromVertexID() == this->_getFromVertexID());
         return w;
@@ -244,11 +239,14 @@ public :
 
         VertexWalker w( *mesh, _prev );
         w.starter = this->starter;
-        w.counter++;
+        w.counter = counter+1;
         w.setIfDone();
         assert(w._getFromVertexID() == this->_getFromVertexID());
         return w;
     }
+
+    HalfEdgeID      GetHalfEdgeID()          const { return _getHalfEdgeID();    }
+    const HalfEdge& GetHalfEdge()            const { return _getHalfEdge();    }
 };
 
 
