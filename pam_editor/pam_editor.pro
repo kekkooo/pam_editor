@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -36,6 +36,10 @@ HEADERS  += mainwindow.h \
     mesh/mesh_base.h \
     color.h \
     mesh/mesh.h \
-    mesh/import.h
+    mesh/import.h \
+    mesh/drawable.h \
+    mesh/BBox.h \
+    mesh/bsphere.h \
+    utilities/GLutils.h
 
 FORMS    += mainwindow.ui

@@ -2,10 +2,11 @@
 #define COLOR_H
 
 #include <assert.h>
+#include <cmath>
 
 using namespace std;
 
-namespace Primitives
+namespace Mesh
 {
 
 class Color

@@ -2,6 +2,7 @@
 #define MESH_BASE_H
 
 #include "R3/point.h"
+#include "color.h"
 
 #include <boost/serialization/strong_typedef.hpp>
 
@@ -25,6 +26,10 @@ inline bool isValid( VertexID id)   { return id != InvalidVertexID; }
 inline bool isValid( HalfEdgeID id) { return id != InvalidHalfEdgeID; }
 inline bool isValid( FaceID id)     { return id != InvalidFaceID; }
 
+static inline VertexID Shift( VertexID left , long right ) { return VertexID(left.t + right );}
+static inline HalfEdgeID Shift( HalfEdgeID left , long right ) { return HalfEdgeID(left.t + right );}
+static inline FaceID Shift( FaceID left , long right ) { return FaceID(left.t + right );}
+
 enum class PolygonType : char{
     Triangle = 'T', Quad = 'Q', Penta = 'P', Hexa = 'H',
 };
@@ -37,6 +42,7 @@ struct Vertex{
     R3::Point pos;
     R3::Vec3d normal;
 public :
+    Color c = Color::Black();
     HalfEdgeID in = InvalidHalfEdgeID, out = InvalidHalfEdgeID;
     const R3::Point Pos() const { return pos; }
     R3::Point Pos()             { return pos; }
@@ -56,6 +62,7 @@ struct Face{
 private :
     R3::Vec3d normal;
 public :
+    Color c = Color::Green();
     std::vector<VertexID> verts;
     HalfEdgeID  edge = InvalidHalfEdgeID;
     PolygonType GetPolygonType() const {
