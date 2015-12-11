@@ -11,6 +11,7 @@
 #include <mesh/mesh_base.h>
 #include <mesh/mesh.h>
 #include <mesh/import.h>
+#include "GUI/viewer.h"
 
 
 

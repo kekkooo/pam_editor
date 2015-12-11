@@ -1,13 +1,6 @@
 #ifndef DRAWABLE_H
 #define DRAWABLE_H
 
-#include <OpenGL.h>
-#include <glu.h>
-#include "color.h"
-#include "mesh_base.h"
-#include "mesh.h"
-#include "BBox.h"
-
 namespace Mesh{
 
 //enum DrawMode : int{
@@ -28,30 +21,27 @@ private :
     bool vertexColor = true;
     bool edgeColor   = true;
 public :
-public :
     void SetFlat(){           flat = true; smooth = false; }
     void SetSmooth(){         flat = false;  smooth = true; }
     void SetSolid(){          solid = true; transparent = false; }
     void SetTransparent(){    solid = false; transparent = true; }
     void SetPoints(){         points = true; }
-    void SetFaceColor(      bool set = true) {  faceColor = set; }
-    void SetVertexColor(      bool set = true) {  vertexColor = set; }
-    void SetEdgeColor(      bool set = true) {  edgeColor = set; }
+    void SetWireframe(        bool set = true) {  wireFrame     = set; }
+    void SetFaceColor(        bool set = true) {  faceColor     = set; }
+    void SetVertexColor(      bool set = true) {  vertexColor   = set; }
+    void SetEdgeColor(        bool set = true) {  edgeColor     = set; }
 };
 
 class Drawable{
 protected:
-   bool isVisible = true;
+    bool isVisible = true;
 public:
-  virtual void Draw() const = 0;
-  virtual void SetVisibility( bool visibility ) { isVisible = visibility; }
-  virtual bool IsVisible() const = 0;
-};
+    virtual void Draw() const = 0;
+    virtual void SetVisibility( bool visibility ) { isVisible = visibility; }
+    virtual bool IsVisible() const { return isVisible; }
 
-class DrawableMesh : public Mesh, public Drawable{
-private :
+    /* ATTRIBUTES */
     DrawMode draw_mode;
-
 };
 
 }

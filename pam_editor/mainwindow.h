@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "GUI/viewer.h"
 
 namespace Ui {
 class MainWindow;
@@ -16,7 +17,8 @@ public:
     ~MainWindow();
 
 private:
-    Ui::MainWindow *ui;    
+    Ui::MainWindow          *ui;
+    Viewer					*viewer;
 };
 
 #endif // MAINWINDOW_H
